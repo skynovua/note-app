@@ -16,7 +16,7 @@ export default function NoteList({ notes, onDelete }: NoteListProps) {
           <CardHeader>
             <CardTitle>{note.title}</CardTitle>
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="grow">
             <p className="line-clamp-3">{note.body}</p>
           </CardContent>
           <CardFooter className="space-x-2">

@@ -6,31 +6,27 @@ const API_BASE_URL = "https://jsonplaceholder.typicode.com/posts";
 export async function fetchNotes(): Promise<NoteDocument[]> {
   try {
     // Fetch notes from API
-    const response = await fetch(API_BASE_URL + "?_limit=5");
-    const data = await response.json() as Array<ServerNote>;
+    const response = await fetch(`${API_BASE_URL}?_limit=5`);
+    const data = await response.json() as ServerNote[];
     const db = await getDB();
 
     // Store fetched notes in RxDB
-    await Promise.all(
-      data.map(async (note) => {
-        const noteRecord = await db.notes.findOne({
-          selector: {
-            id: note.id.toString()
-          }
-        }).exec();
+    const upsertPromises = data.map(async (note) => {
+      const noteRecord = await db.notes.findOne({
+        selector: { id: note.id.toString() }
+      }).exec();
 
-        if (noteRecord) {
-          return;
-        }
-
+      if (!noteRecord) {
         await db.notes.upsert({
           id: note.id.toString(),
           numericId: note.id,
           title: note.title,
           body: note.body,
         });
-      }),
-    );
+      }
+    });
+
+    await Promise.all(upsertPromises);
 
     return db.notes.find({
       sort: [{ numericId: "desc" }],
@@ -81,11 +77,11 @@ export async function updateNote(note: NoteDocument): Promise<NoteDocument> {
           "Content-type": "application/json; charset=UTF-8",
         },
       });
-      const data = await response.json();
+      const data = await response.json() as NoteDocument;
 
       noteData = {
         id: data.id.toString(),
-        numericId: data.id,
+        numericId: data.numericId,
         title: data.title,
         body: data.body,
       };

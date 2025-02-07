@@ -1,42 +1,58 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { fetchNotes, deleteNote } from "../lib/api";
-import type { NoteDocument } from "../lib/db";
-import NoteList from "./components/NoteList";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+
 import Link from "next/link";
+import { toast } from "sonner";
+
+import { NoteList } from "@/components/note-list";
+import { Button } from "@/components/ui/button";
+import { NoteDocument } from "@/types/note";
+
+import { deleteNote, fetchNotes } from "../lib/api";
 
 export default function Home() {
   const [notes, setNotes] = useState<NoteDocument[]>([]);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     loadNotes();
   }, []);
 
   async function loadNotes() {
-    const fetchedNotes = await fetchNotes();
-    setNotes(fetchedNotes);
+    setLoading(true);
+    try {
+      const fetchedNotes = await fetchNotes();
+      setNotes(fetchedNotes);
+    } catch (error) {
+      toast.error("Failed to load notes");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDeleteNote(id: string) {
-    await deleteNote(id);
-    setNotes(notes.filter((n) => n.id !== id));
+    try {
+      await deleteNote(id);
+      setNotes(notes.filter((n) => n.id !== id));
+      toast.success("Note deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete note");
+    }
   }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Notes App</h1>
+      <h1 className="mb-4 text-3xl font-bold">Notes App</h1>
       <div className="mb-4">
         <Button asChild>
           <Link href="/create">Create New Note</Link>
         </Button>
       </div>
       <div>
-        <h2 className="text-xl font-semibold mb-2">Your Notes</h2>
-        <NoteList notes={notes} onDelete={handleDeleteNote} />
+        <h2 className="mb-2 text-xl font-semibold">Your Notes</h2>
+        <NoteList isLoading={isLoading} notes={notes} onDeleteNote={handleDeleteNote} />
       </div>
     </div>
   );
 }
-

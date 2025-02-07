@@ -1,8 +1,5 @@
-import { createRxDatabase, addRxPlugin } from "rxdb";
+import { createRxDatabase, RxDatabase } from "rxdb";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
-import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
-
-addRxPlugin(RxDBDevModePlugin);
 
 const noteSchema = {
   title: "note schema",
@@ -13,6 +10,10 @@ const noteSchema = {
     id: {
       type: "string",
       maxLength: 100,
+      primary: true,
+    },
+    numericId: {
+      type: "number",
     },
     title: {
       type: "string",
@@ -24,13 +25,13 @@ const noteSchema = {
   required: ["id", "title", "body"],
 };
 
-export type NoteDocument = {
-  id: string
-  title: string
-  body: string
-}
-
-let dbPromise: Promise<any> | null = null;
+/**
+ * A promise that resolves to an instance of RxDatabase.
+ * Initially set to null, it will be assigned a promise when the database is being initialized.
+ * 
+ * @type {Promise<RxDatabase> | null}
+ */
+let dbPromise: Promise<RxDatabase> | null = null;
 
 export const getDB = async () => {
   if (!dbPromise) {

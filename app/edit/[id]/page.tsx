@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import type { NoteDocument } from "../../../lib/db";
-import { fetchNotes, updateNote } from "../../../lib/api";
-import NoteForm from "../../components/NoteForm";
-import { Button } from "@/components/ui/button";
+import { use, useEffect, useState } from "react";
 
-export default function EditNotePage({ params }: { params: { id: string } }) {
+import { useRouter } from "next/navigation";
+
+import { NoteForm } from "@/components/note-form";
+import { Button } from "@/components/ui/button";
+import { EditableNote, NoteDocument } from "@/types/note";
+
+import { fetchNotes, updateNote } from "../../../lib/api";
+
+export default function EditNotePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [note, setNote] = useState<NoteDocument | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function loadNote() {
       const notes = await fetchNotes();
-      const foundNote = notes.find((n) => n.id === params.id);
+      const foundNote = notes.find((n) => n.id === id);
       if (foundNote) {
         setNote(foundNote);
       } else {
@@ -22,11 +26,11 @@ export default function EditNotePage({ params }: { params: { id: string } }) {
       }
     }
     loadNote();
-  }, [params.id, router]);
+  }, [id, router]);
 
-  async function handleUpdateNote(updatedNote: Omit<NoteDocument, "id">) {
+  async function handleUpdateNote(updatedNote: EditableNote) {
     if (note) {
-      await updateNote({ ...updatedNote, id: note.id });
+      await updateNote({ ...updatedNote, id: note.id, numericId: note.numericId });
       router.push("/");
     }
   }
@@ -37,7 +41,7 @@ export default function EditNotePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Edit Note</h1>
+      <h1 className="mb-4 text-3xl font-bold">Edit Note</h1>
       <NoteForm note={note} onSubmit={handleUpdateNote} />
       <div className="mt-4">
         <Button variant="outline" onClick={() => router.push("/")}>
@@ -47,4 +51,3 @@ export default function EditNotePage({ params }: { params: { id: string } }) {
     </div>
   );
 }
-

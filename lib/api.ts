@@ -1,25 +1,40 @@
-import { getDB, type NoteDocument } from "./db";
+import { EditableNote, NoteDocument, ServerNote } from "@/types/note";
+import { getDB } from "./db";
 
 const API_BASE_URL = "https://jsonplaceholder.typicode.com/posts";
 
 export async function fetchNotes(): Promise<NoteDocument[]> {
   try {
-    const response = await fetch(API_BASE_URL);
-    const data = await response.json();
+    // Fetch notes from API
+    const response = await fetch(API_BASE_URL + "?_limit=5");
+    const data = await response.json() as Array<ServerNote>;
     const db = await getDB();
 
     // Store fetched notes in RxDB
     await Promise.all(
-      data.map(async (note: any) => {
+      data.map(async (note) => {
+        const noteRecord = await db.notes.findOne({
+          selector: {
+            id: note.id.toString()
+          }
+        }).exec();
+
+        if (noteRecord) {
+          return;
+        }
+
         await db.notes.upsert({
           id: note.id.toString(),
+          numericId: note.id,
           title: note.title,
           body: note.body,
         });
       }),
     );
 
-    return db.notes.find().exec();
+    return db.notes.find({
+      sort: [{ numericId: "desc" }],
+    }).exec();
   } catch (error) {
     console.error("Error fetching notes:", error);
     const db = await getDB();
@@ -27,7 +42,7 @@ export async function fetchNotes(): Promise<NoteDocument[]> {
   }
 }
 
-export async function createNote(note: Omit<NoteDocument, "id">): Promise<NoteDocument> {
+export async function createNote(note: EditableNote): Promise<NoteDocument> {
   try {
     const response = await fetch(API_BASE_URL, {
       method: "POST",
@@ -39,7 +54,8 @@ export async function createNote(note: Omit<NoteDocument, "id">): Promise<NoteDo
     const data = await response.json();
     const db = await getDB();
     const newNote = {
-      id: data.id.toString(),
+      id: crypto.randomUUID(),
+      numericId: new Date().getTime(),
       title: data.title,
       body: data.body,
     };
@@ -53,16 +69,31 @@ export async function createNote(note: Omit<NoteDocument, "id">): Promise<NoteDo
 
 export async function updateNote(note: NoteDocument): Promise<NoteDocument> {
   try {
-    const response = await fetch(`${API_BASE_URL}/${note.id}`, {
-      method: "PUT",
-      body: JSON.stringify(note),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    });
-    const data = await response.json();
+    let noteData = note;
+
+    // If the note was created locally, update it in the API
+    // because the API returns 500 for PUT requests with numericId < 100
+    if (noteData.numericId < 100) {
+      const response = await fetch(`${API_BASE_URL}/${note.id}`, {
+        method: "PUT",
+        body: JSON.stringify(note),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      });
+      const data = await response.json();
+
+      noteData = {
+        id: data.id.toString(),
+        numericId: data.id,
+        title: data.title,
+        body: data.body,
+      };
+    }
+
     const db = await getDB();
     await db.notes.upsert(note);
+
     return note;
   } catch (error) {
     console.error("Error updating note:", error);

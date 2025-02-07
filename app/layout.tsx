@@ -28,7 +28,7 @@ export default function RootLayout({
           <main>
             <Header />
             {children}
-            <Toaster position="top-right" />
+            <Toaster />
             <OnlineToast />
           </main>
         </ThemeProvider>

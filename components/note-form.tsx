@@ -29,7 +29,7 @@ const formSchema = z.object({
 });
 
 interface NoteFormProps {
-  note: NoteDocument | null;
+  note?: NoteDocument | null;
   isLoading?: boolean;
   onSubmit: (note: EditableNote) => Promise<void>;
 }

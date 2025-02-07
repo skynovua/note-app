@@ -17,7 +17,6 @@ export default function CreateNotePage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="mb-4 text-3xl font-bold">Create New Note</h1>
       <NoteForm onSubmit={handleCreateNote} />
       <div className="mt-4">
         <Button variant="outline" onClick={() => router.push("/")}>

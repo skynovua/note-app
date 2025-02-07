@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
 
+import { Header } from "@/components/header";
 import { OnlineToast } from "@/components/online-toast";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main>
+            <Header />
             {children}
             <Toaster position="top-right" />
             <OnlineToast />

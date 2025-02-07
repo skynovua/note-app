@@ -22,7 +22,7 @@ export const NoteCard = ({ note, onDeleteNote }: NoteCardProps) => {
   return (
     <Card
       key={note.id}
-      className="flex transform flex-col transition hover:scale-105 hover:shadow-lg"
+      className="flex transform flex-col transition hover:scale-[1.02] hover:shadow-lg"
     >
       <CardHeader>
         <CardTitle>{note.title}</CardTitle>

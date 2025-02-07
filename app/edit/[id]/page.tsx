@@ -41,7 +41,6 @@ export default function EditNotePage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="mb-4 text-3xl font-bold">Edit Note</h1>
       <NoteForm note={note} onSubmit={handleUpdateNote} />
       <div className="mt-4">
         <Button variant="outline" onClick={() => router.push("/")}>

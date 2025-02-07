@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const NoteSkeleton = () => {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {[...Array(6)].map((_, index) => (
+      {[...Array(5)].map((_, index) => (
         <Card key={index} className="flex flex-col">
           <CardHeader>
             <Skeleton className="h-4 w-3/4" />

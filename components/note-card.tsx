@@ -35,6 +35,7 @@ export const NoteCard = ({ note, onDeleteNote }: NoteCardProps) => {
           <Link href={`/edit/${note.id}`}>Edit</Link>
         </Button>
         <Button
+          className="cursor-pointer"
           variant="destructive"
           size="sm"
           onClick={() => handleDeleteNote(note.id)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { EditableNote, NoteDocument } from "@/types/note";
 
@@ -28,11 +29,12 @@ const formSchema = z.object({
 });
 
 interface NoteFormProps {
-  note?: NoteDocument;
+  note: NoteDocument | null;
+  isLoading?: boolean;
   onSubmit: (note: EditableNote) => Promise<void>;
 }
 
-export function NoteForm({ note, onSubmit }: NoteFormProps) {
+export function NoteForm({ note, isLoading, onSubmit }: NoteFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,6 +45,13 @@ export function NoteForm({ note, onSubmit }: NoteFormProps) {
     resolver: zodResolver(formSchema),
   });
 
+  useEffect(() => {
+    form.reset({
+      title: note?.title ?? "",
+      body: note?.body ?? "",
+    });
+  }, [note, form]);
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     startTransition(() =>
       onSubmit(values).then(() => {
@@ -50,6 +59,29 @@ export function NoteForm({ note, onSubmit }: NoteFormProps) {
       }),
     );
   };
+
+  if (isLoading && !note) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Note</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-[100px]" />
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card>
